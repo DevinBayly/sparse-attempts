@@ -7,9 +7,19 @@
 </head>
 <body>
 <script>
-    /*function sparseMtx(dok) {
+    function sparseMtx(xrange,yrange,data) { // try to figure out which i and j are. I think i is teh row, and j is the column
+        var retMtx = new Array();
+        for (var i in xrange) {
+            retMtx.push(Array())
+        }
+        for (var dataOb of data) {
+            var row = yrange.indexOf(dataOb.coord.y),
+                    col = xrange.indexOf(dataOb.coord.x)
+            retMtx[row][col] = dataOb
 
-    }*/
+        }
+        return retMtx
+    }
     var xlabels = d3.range(.63,2.33,.1),
             ylabels = d3.range(12.3,15.3,1);
 
@@ -107,18 +117,14 @@
         var stepsX = findSteps(xlabels),
                 gCDx = getGCD(+stepsX[0][0].key, +stepsX[1][0].key),
                 stepsY = findSteps(ylabels),
-                gCDy = getGCD(+stepsY[0][0].key, +stepsY[1][0].key); // will the incredibly small decimal values throw off the float arithmetic
-//                inclusiveRangeX = d3.range(xlabels[0], xlabels.slice(-1)[0] + gCDx, gCDx) // this will be the retrieval values for the sparse matrix
-//                        .map(function (number) {
-//                            return +number.toFixed(2)
-//                        }),
-//                inclusiveRangeY = d3.range(ylabels[0], ylabels.slice(-1)[0] + gCDy, gCDy)
-//                        .map(function (number) {
-//                            return +number.toFixed(2)
-//                        });
+                gCDy = getGCD(+stepsY[0][0].key, +stepsY[1][0].key), // will the incredibly small decimal values throw off the float arithmetic
+                inclusiveRangeX = d3.range(xlabels[0], xlabels.slice(-1)[0] + gCDx, gCDx), // this will be the retrieval values for the sparse matrix
+                inclusiveRangeY = d3.range(ylabels[0], ylabels.slice(-1)[0] + gCDy, gCDy);
 
         //the next step will be to create a large array of arrays which is sparse, and then populate it with the data according to the coordinates that are stored with the data.
         //this should make it possible for a large amount of variably spaced data to be stored efficiently, in a way that can be searched quickly!!
+
+        var bigSparseMtx = sparseMtx(inclusiveRangeX,inclusiveRangeY,dataObs)
 
     })
 
