@@ -1,0 +1,31 @@
+word_comp and exploring ordinal
+    
+    addition ideas
+
+        introduce some transitions for the toolti
+        create a brushing effect that adjusts the view
+        make button that will remove bar based on click to get more refined graph
+        append the svg to a div that can be cssed around instead of the actual body
+        change the bar order such that the one that is taller is always in the background so that I can access all bars with mouse
+
+    issues that I'm stuck on
+        I can't figure out how to make the brush adjusted scale actually change the content that is shown in focus
+            furthermore, brush jumps to an unselected region, and cannot be moved.
+        
+        completed items
+        x I went ahead and created a nice div element that has the person, word and count in a box that shows just to the right of the bar in question
+        xx make highligting bar and axis hover for mouse
+        xx center the heading p element
+        xx make a pretty bar that will display the number of the hovered rectangle
+        x highlighting bar all taken care of
+            o stuck on the part whereby the text in the axis region lights up gold too.
+                x finished this by taking using the index orders for each and instead of "this" using d3.select(this)
+        x trouble with the bottom row of bars not being exactly the same 
+                   x totally done, problem was with the rounding tilda's that I used in front
+
+
+
+
+        xx delete the akis that is right next to the actual bars
+        xx get the max scale set such that the 223 is actually the tallest bar
+        xx make the bars have a linear increase, instead of having a huge chunk for 1 time appearing and then smaller pieces all the way up.

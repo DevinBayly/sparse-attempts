@@ -1,0 +1,118 @@
+<html>
+<head>
+    <script type="text/javascript" src="../d3.min.js"></script>
+    <script src="jquery.js" type="text/javascript"></script>
+
+
+</head>
+<body>
+<script>
+    /*function sparseMtx(dok) {
+
+    }*/
+    var xlabels = d3.range(.63,2.33,.1),
+            ylabels = d3.range(12.3,15.3,1);
+
+    function addCoord(incOb) {
+        incOb.coord = {x:xlabels[incOb.data[0][0]],y:ylabels[incOb.data[0][1]]}
+    }
+
+    function getPrecision(num1, num2) {
+        var digits1 = String(num1).split(".")[1],
+                digits2 = String(num2).split(".")[1];
+        if (digits1 && digits2) {
+            var len1 = digits1.length,
+                    len2 = digits2.length;
+            if (len1 > len2) {
+                return len1
+            }
+            return len2
+        }
+        if (! digits1 && digits2) {
+            return digits2.length
+        } else {
+            return 2
+        }
+    }
+
+    // will need to make this flexible to the point where it returns step options for arr with any number of sub ranges
+    // might need to simply sort through the possibles and check if they are turning out to be the same as far as we are concerned.
+    function findSteps(arr) {
+        var possibles = {};
+
+        for (var i=0; i < arr.length -2; i++) { // i think it must be -2 because the indexing is always one less that the length, and I want to stop 1 element early
+            var initial = arr[i],
+                    final = arr[i+1],
+                    difPrecision = getPrecision(initial,final) + 2
+                    dif = (final-initial).toFixed(difPrecision); // what's the best way to choose a level of precision that is reasonable?
+            if (possibles.hasOwnProperty(dif)) {
+                ++possibles[dif]
+            } else {
+                possibles[dif] = 1
+            }
+
+
+        }// this is starting to feel pretty ugly... another way which might be better (?) would be to re-split the whole sorted array, and take the
+
+        var iterPossible = d3.entries(possibles),
+                retArr = [];
+        for (var times = 2; times > 0; --times) { // looking for the two most frequent step values
+            maxVal = d3.max(iterPossible, function (ob) { // if same value is shared between keys then we get a 3 elemnt array out at the end, just heads up
+                return ob.value
+            });
+            for (var i in iterPossible) {
+                if (iterPossible[i].value == maxVal) {
+                    retArr.push(iterPossible.splice(i,1))
+                }
+
+            }
+        }
+        return retArr
+    }
+
+    function getGCD(val1,val2) {
+        if (val2.toFixed(5) == 0) { // this might need to be changed to be a little more general also
+            return val1
+        } else {
+            if (val1 > val2) {
+                return getGCD(val2, val1 % val2); // tricky part here is that val2 needs to be able to get larger or smaller depending on the poorness of fit.
+            } else {
+                return getGCD(val1, val2 % val1)
+            }
+        }
+    }
+
+    d3.text("sparse_to_be_data.txt", function (error,data)  {
+        var dataObs = JSON.parse(data);
+        dataObs.forEach(function (ob) {addCoord(ob)});
+        // next line adds a range of values with different steps to the labels arrays
+        d3.range(.75,.86,.01).map(function (rangeVal) {xlabels.push(rangeVal)});
+        xlabels.sort();
+        xlabels = xlabels.map(function (num) {return +num.toFixed(2)});
+        d3.range(12.5,13.5,.1).map(function (rangeVal) {ylabels.push(rangeVal)});
+        ylabels.sort();
+        ylabels = ylabels.map(function (num) {return +num.toFixed(2)});
+        // the next step is to determine what is the smallest step value which will catch all the values within the labels.
+        // im not really sure about how to do this. maybe look for greatest common divisor of the two identified step values
+        // first step is to determine what the two different step values are within each array. I mean it could just be stored at runtime?
+
+        var stepsX = findSteps(xlabels),
+                gCDx = getGCD(+stepsX[0][0].key, +stepsX[1][0].key),
+                stepsY = findSteps(ylabels),
+                gCDy = getGCD(+stepsY[0][0].key, +stepsY[1][0].key); // will the incredibly small decimal values throw off the float arithmetic
+//                inclusiveRangeX = d3.range(xlabels[0], xlabels.slice(-1)[0] + gCDx, gCDx) // this will be the retrieval values for the sparse matrix
+//                        .map(function (number) {
+//                            return +number.toFixed(2)
+//                        }),
+//                inclusiveRangeY = d3.range(ylabels[0], ylabels.slice(-1)[0] + gCDy, gCDy)
+//                        .map(function (number) {
+//                            return +number.toFixed(2)
+//                        });
+
+
+    })
+
+
+</script>
+</body>
+</html>

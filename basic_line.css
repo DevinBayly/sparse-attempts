@@ -1,0 +1,10 @@
+path {
+    stroke: steelblue;
+    stroke-width: 2;
+    fill: none;  
+}
+
+.brush .extent {
+    fill : steelblue;
+    fill-opacity: .125;
+}

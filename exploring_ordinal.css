@@ -1,0 +1,7 @@
+.brush .extent {
+    fill: blue;
+    fill-opacity: .125;
+}
+rect.background {
+    fill:transparent;
+}
