@@ -15,16 +15,18 @@
         for (var dataOb of data) {
             var row = yrange.indexOf(dataOb.coord.y),
                     col = xrange.indexOf(dataOb.coord.x)
-            retMtx[row][col] = dataOb
+            retMtx[col][row] = dataOb // are the col and row in the right places?
 
-        }
+        }// create a way to test the number of entries in this sparse Array to see whether everthing found a home.
         return retMtx
     }
     var xlabels = d3.range(.63,2.33,.1),
             ylabels = d3.range(12.3,15.3,1);
 
-    function addCoord(incOb) {
-        incOb.coord = {x:xlabels[incOb.data[0][0]],y:ylabels[incOb.data[0][1]]}
+    function addCoord(incOb) { // need to perform a little bit of filtration here because the values are carrying floating funky stuff.
+        incOb.coord = {
+            x: +xlabels[incOb.data[0][0]].toFixed(4),
+            y: +ylabels[incOb.data[0][1]].toFixed(4)}
     }
 
     function getPrecision(num1, num2) {
