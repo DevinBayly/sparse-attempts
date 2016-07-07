@@ -28,15 +28,32 @@
             }
             return len2
         }
-        if (! digits1 && digits2) {
+        if (! digits1 && digits2) { // doesn't there still need to be an option that includes digits2 not being defined when digits1 is?
             return digits2.length
-        } else {
+        } else if (!digits2 && digits2) {
+            return digits1.length
+        }
+        else {
             return 2
         }
     }
 
+    function cleanUpOb(obj) {
+        var iterOb = d3.entries(obj),
+                keyArr = [],
+                sameInds = [];
+        iterOb.map(function (ob) {return keyArr.push(+ob.key)})
+
+        for (var k of keyArr) {
+            k
+
+        }
+
+    }
+
     // will need to make this flexible to the point where it returns step options for arr with any number of sub ranges
     // might need to simply sort through the possibles and check if they are turning out to be the same as far as we are concerned.
+    // todo chase down the instance of 0 that comes up in the dif, could be because of an indexing error of some sort.
     function findSteps(arr) {
         var possibles = {};
 
@@ -45,7 +62,7 @@
                     final = arr[i+1],
                     difPrecision = getPrecision(initial,final) + 2
                     dif = (final-initial).toFixed(difPrecision); // what's the best way to choose a level of precision that is reasonable?
-            if (possibles.hasOwnProperty(dif)) {
+            if (possibles.hasOwnProperty(+dif)) {
                 ++possibles[dif]
             } else {
                 possibles[dif] = 1
@@ -54,7 +71,9 @@
 
         }// this is starting to feel pretty ugly... another way which might be better (?) would be to re-split the whole sorted array, and take the
 
-        var iterPossible = d3.entries(possibles),
+
+
+        var iterPossible = cleanUpOb(possibles),
                 retArr = [];
         for (var times = 2; times > 0; --times) { // looking for the two most frequent step values
             maxVal = d3.max(iterPossible, function (ob) { // if same value is shared between keys then we get a 3 elemnt array out at the end, just heads up
@@ -109,6 +128,8 @@
 //                            return +number.toFixed(2)
 //                        });
 
+        //the next step will be to create a large array of arrays which is sparse, and then populate it with the data according to the coordinates that are stored with the data.
+        //this should make it possible for a large amount of variably spaced data to be stored efficiently, in a way that can be searched quickly!!
 
     })
 
