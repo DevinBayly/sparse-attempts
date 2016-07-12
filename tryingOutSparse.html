@@ -152,8 +152,13 @@
 
         var compMtx = createComparMtx(inclusiveRangeY.length,inclusiveRangeX.length);
 
+        console.log("timing the sparse matrix traverse")
         traverseArr(bigSparseMtx)
+        console.log("timing the comparison zero matrix traverse")
         traverseArr(compMtx)
+
+        console.log("the sparse should be quite a bit faster")
+        //it appears that the sparse mtx is in fact faster for traversal times than the matrix comprised of zeros, which suggests that there is a actual beneficial side to having the undefined enttries vs a zero as placeholder
 
 
 
