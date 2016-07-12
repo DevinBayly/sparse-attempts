@@ -12,7 +12,9 @@
         for (var i in xrange) {
             retMtx.push(Array())
         }
-        for (var dataOb of data) {
+
+        // so effectively if the data has dots that belong to a coordinate set that is spaced at some strange step, then this should still be able to place it within a reasonable data structure.
+        for (var dataOb of data) { // this is the section that effectively goes from our one dimensional array of data objects and creates a searchable represntation of canvas.
             var row = yrange.indexOf(dataOb.coord.y),
                     col = xrange.indexOf(dataOb.coord.x)
             retMtx[col][row] = dataOb // are the col and row in the right places?
@@ -48,6 +50,15 @@
         else {
             return 2
         }
+    }
+
+    function traverseArr(arr){
+        console.time("ARR traverse")
+        // question that I still have here is will it make a difference if the entries in the sparse mtx are objects? should I be creating what they call the dense mtx?
+        for (var colele of arr) { //this must be a 2 nested thing, or else we aren't really checking the way that the filteration would be.
+            for(var rowele of colele ) {}
+        }
+        console.timeEnd("ARR traverse")
     }
 
 
@@ -102,6 +113,15 @@
         }
     }
 
+    //this function is devoted to creating a matrix that is full of zeros
+    function createComparMtx(rows,cols) {
+        var retMtx = []
+        for (var col = 0; col < cols ; ++col) {
+            retMtx.push(Array(rows).fill(0))
+        }
+        return retMtx
+    }
+
     d3.text("sparse_to_be_data.txt", function (error,data)  {
         var dataObs = JSON.parse(data);
         dataObs.forEach(function (ob) {addCoord(ob)});
@@ -126,7 +146,16 @@
         //the next step will be to create a large array of arrays which is sparse, and then populate it with the data according to the coordinates that are stored with the data.
         //this should make it possible for a large amount of variably spaced data to be stored efficiently, in a way that can be searched quickly!!
 
-        var bigSparseMtx = sparseMtx(inclusiveRangeX,inclusiveRangeY,dataObs)
+        var bigSparseMtx = sparseMtx(inclusiveRangeX,inclusiveRangeY,dataObs);
+
+        // this part is going to be devoted to testing out whether I have created something which is indeed faster with the undefined entries than with full
+
+        var compMtx = createComparMtx(inclusiveRangeY.length,inclusiveRangeX.length);
+
+        traverseArr(bigSparseMtx)
+        traverseArr(compMtx)
+
+
 
     })
 
