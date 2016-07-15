@@ -2,201 +2,23 @@
 <head>
     <script type="text/javascript" src="../d3.min.js"></script>
     <script src="../temp_store/jquery.js" type="text/javascript"></script>
+    <script src="alternateDatastructure.js" type="text/javascript"></script>
 
 </head>
 <body>
 <script>
-    function sparseMtx(xrange,yrange,data) { // try to figure out which i and j are. I think i is teh row, and j is the column
-        var retMtx = new Array();
-        for (var i in xrange) {
-            retMtx.push(Array())
-        }
-
-        // so effectively if the data has dots that belong to a coordinate set that is spaced at some strange step, then this should still be able to place it within a reasonable data structure.
-        for (var dataOb of data) { // this is the section that effectively goes from our one dimensional array of data objects and creates a searchable represntation of canvas.
-            var row = yrange.indexOf(dataOb.coord.y),
-                    col = xrange.indexOf(dataOb.coord.x)
-            retMtx[col][row] = dataOb // are the col and row in the right places?
-
-        }// create a way to test the number of entries in this sparse Array to see whether everthing found a home.
-        return retMtx
-    }
-    var xlabels = d3.range(.63,2.33,.1),
-            ylabels = d3.range(12.3,15.3,1);
-
-    function addCoord(incOb) { // need to perform a little bit of filtration here because the values are carrying floating funky stuff.
-        incOb.coord = {
-            x: +xlabels[incOb.data[0][0]].toFixed(4),
-            y: +ylabels[incOb.data[0][1]].toFixed(4)}
-    }
-
-    function getPrecision(num1, num2) {
-        var digits1 = String(num1).split(".")[1],
-                digits2 = String(num2).split(".")[1];
-        if (digits1 && digits2) {
-            var len1 = digits1.length,
-                    len2 = digits2.length;
-            if (len1 > len2) {
-                return len1
-            }
-            return len2
-        }
-        if (! digits1 && digits2) { // doesn't there still need to be an option that includes digits2 not being defined when digits1 is?
-            return digits2.length
-        } else if (!digits2 && digits2) {
-            return digits1.length
-        }
-        else {
-            return 2
-        }
-    }
-
-    function traverseArr(arr){
-        console.time("ARR traverse")
-        // question that I still have here is will it make a difference if the entries in the sparse mtx are objects? should I be creating what they call the dense mtx?
-        for (var colele of arr) { //this must be a 2 nested thing, or else we aren't really checking the way that the filteration would be.
-            for(var rowele of colele ) {}
-        }
-        console.timeEnd("ARR traverse")
-    }
-
-
-
-    // will need to make this flexible to the point where it returns step options for arr with any number of sub ranges
-    // might need to simply sort through the possibles and check if they are turning out to be the same as far as we are concerned.
-    // todo chase down the instance of 0 that comes up in the dif, could be because of an indexing error of some sort.
-    function findSteps(arr) {
-        var possibles = {};
-
-        for (var i=0; i < arr.length -2; i++) { // i think it must be -2 because the indexing is always one less that the length, and I want to stop 1 element early
-            var initial = arr[i],
-                    final = arr[i+1],
-                    difPrecision = getPrecision(initial,final) + 2
-                    dif = (final-initial).toFixed(difPrecision); // what's the best way to choose a level of precision that is reasonable?
-            if (possibles.hasOwnProperty(+dif)) { //the + dif should make sure that we don't end up with the same float number with different amounts of 0's trailing
-                ++possibles[+dif]
-            } else {
-                possibles[+dif] = 1
-            }
-
-
-        }// this is starting to feel pretty ugly... another way which might be better (?) would be to re-split the whole sorted array, and take the
-
-
-
-        var iterPossible = d3.entries(possibles),
-                retArr = [];
-        for (var times = 2; times > 0; --times) { // looking for the two most frequent step values
-            maxVal = d3.max(iterPossible, function (ob) { // if same value is shared between keys then we get a 3 elemnt array out at the end, just heads up
-                return ob.value
-            });
-            for (var i in iterPossible) {
-                if (iterPossible[i].value == maxVal) {
-                    retArr.push(iterPossible.splice(i,1))
-                }
-
-            }
-        }
-        return retArr
-    }
-
-    function getGCD(val1,val2) {
-        if (val2.toFixed(5) == 0) { // this might need to be changed to be a little more general also
-            return val1
-        } else {
-            if (val1 > val2) {
-                return getGCD(val2, val1 % val2); // tricky part here is that val2 needs to be able to get larger or smaller depending on the poorness of fit.
-            } else {
-                return getGCD(val1, val2 % val1)
-            }
-        }
-    }
-
-    //this function is devoted to creating a matrix that is full of zeros
-    function createComparMtx(rows,cols) {
-        var retMtx = []
-        for (var col = 0; col < cols ; ++col) {
-            retMtx.push(Array(rows).fill(0))
-        }
-        return retMtx
-    }
-
-    //todo write function that retulrns the next defined entry in an array.
-
-    function cruiseRows(arr) {
-        for (var ele in arr) {
-
-
-        }
-    }
-
-    function retrieveDefined(arr) {
-
-    }
-    //this is an implementation which ideally considers neighbors that have slightly different parameter values with one being considered before the other.
-    //the rule used before was to examine the neighbor above or to the left.
-    // there needs to be something that provides for a dot to find a neighbor even if its not within that current row.
-    //      is this going to need to be based on the distance from one dot to another in parameter coordinate terms?
-    //      what would be the value to cut investigations off at?
-    function practiceFilter(Arr,srchMetric) {
-        //does this need to be able to skip the undefined cells? or just roll through them? maybe roll,
-        // could create a four direction look that involves a try to cover the instances where there isn't an actual entry in that direction?
-        // might need to run some sort of set theory on the collection at the end so that we don't wind up with too many duplicate entries if the searching is going to proceed this way.
-        // create a conditional which is triggered if there isn't an immediately detected neighbor in the column or the row.
-        // the trick to making a horizontal array could look like this arr.map(function (ele,col) {return arr[col][row]}) this changes the col, but the row number remains the same, and returns a 1d array
-        for ()
-        try {
-
-
-        }
-
-
-
-
-    }
-
-    d3.text("sparse_to_be_data.txt", function (error,data)  {
-        var dataObs = JSON.parse(data);
-        dataObs.forEach(function (ob) {addCoord(ob)});
-        // next line adds a range of values with different steps to the labels arrays
-        d3.range(.75,.86,.01).map(function (rangeVal) {xlabels.push(rangeVal)});
-        xlabels.sort();
-        xlabels = xlabels.map(function (num) {return +num.toFixed(2)});
-        d3.range(12.5,13.5,.1).map(function (rangeVal) {ylabels.push(rangeVal)});
-        ylabels.sort();
-        ylabels = ylabels.map(function (num) {return +num.toFixed(2)});
-        // the next step is to determine what is the smallest step value which will catch all the values within the labels.
-        // im not really sure about how to do this. maybe look for greatest common divisor of the two identified step values
-        // first step is to determine what the two different step values are within each array. I mean it could just be stored at runtime?
-
-        var stepsX = findSteps(xlabels),
-                gCDx = getGCD(+stepsX[0][0].key, +stepsX[1][0].key),
-                stepsY = findSteps(ylabels),
-                gCDy = getGCD(+stepsY[0][0].key, +stepsY[1][0].key), // will the incredibly small decimal values throw off the float arithmetic
-                inclusiveRangeX = d3.range(xlabels[0], xlabels.slice(-1)[0] + gCDx, gCDx), // this will be the retrieval values for the sparse matrix
-                inclusiveRangeY = d3.range(ylabels[0], ylabels.slice(-1)[0] + gCDy, gCDy);
-
-        //the next step will be to create a large array of arrays which is sparse, and then populate it with the data according to the coordinates that are stored with the data.
-        //this should make it possible for a large amount of variably spaced data to be stored efficiently, in a way that can be searched quickly!!
-
-        var bigSparseMtx = sparseMtx(inclusiveRangeX,inclusiveRangeY,dataObs);
-
-        // this part is going to be devoted to testing out whether I have created something which is indeed faster with the undefined entries than with full
-
-        var compMtx = createComparMtx(inclusiveRangeY.length,inclusiveRangeX.length);
-
-        console.log("timing the sparse matrix traverse")
-        traverseArr(bigSparseMtx)
-        console.log("timing the comparison zero matrix traverse")
-        traverseArr(compMtx)
-
-        console.log("the sparse should be quite a bit faster")
-        //it appears that the sparse mtx is in fact faster for traversal times than the matrix comprised of zeros, which suggests that there is a actual beneficial side to having the undefined enttries vs a zero as placeholder
-
-
-
-
-    })
+    var xStartingLabels = d3.range(.63, 2.33, .1),
+            yStartingLabels = d3.range(12.33, 15.33, 1),
+            startingDataObs = d3.text("53_results_data.txt", function (error, data) {
+                return JSON.parse(data)
+            }),
+            yAddedLables = d3.range(12.33, 15.33, .5),
+            xAddedLables = d3.range(.93, 1.13, .5),
+            addedDataobs = [];
+    d3.text("24_results_data.txt", function (error, data) { //why can't i seem to get this object out of the call?
+        addedDataobs.concat(JSON.parse(data))
+    });
+    console.log(addedDataobs)
 
 
 </script>
