@@ -29,15 +29,16 @@ function createStructure(data, xlabels, ylabels) {
 }
 
 //this function recreates a row from the sparse matrix and leaves undefined objects where there isn't a result. The tricky part here is to remember that the ithrow starts counting at 0
-function reconstructRow(structure,ithRow) { // it's also worth bearing in mind that the 0th row is the bottom, lowest y row
-    var retArr = [],
+function reconstructRow(structure,ithRow,rowLen) { // it's also worth bearing in mind that the 0th row is the bottom, lowest y row
+    var retArr = Array(rowLen), // should put something here at the init to make the retArr as long as the row len?
         startInd = structure.IA[ithRow],
         endInd = structure.IA[ithRow+1],//normally there would need to be a -1 at the end here, but since slice isn't inclusive i took it away
         nzEles = structure.A.slice(startInd,endInd),
         colPos= structure.JA.slice(startInd,endInd);
     for (var i in nzEles) { // is it too confusing to have i be the Loop control var here, given the parameter choice?
-        retArr[colPos[i]] = nzEles[i]
+        retArr[colPos[i]] = nzEles[i] //it appears that col # three gets used twice and so does 5, but they are also objects placed at the exact same position in the canvas...
     }
+    //should this be filtered to remove the undefineds just to speed it up??
     return retArr
 
 
