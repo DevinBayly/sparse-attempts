@@ -13,20 +13,25 @@
 //adds coordinate attribute to each of the data objects that are included in the
 
 //this function will take in the original 1 dimensional array (seriesArray likely) and generate a matrix (sparse or condensed) that will be accessed upon plotting, filtering, and generating overlays.
-// **I might be leaning towards using a CSR (compressed sparse Row) structure here to actually accomplish the reasonable sized storing**
+//I'm just going to try a COO coordinate list of tuples, but then why would I change it from the current object array?
 // do I want the data to be sorted at all? Maybe either by row or column parameter value?
 function createStructure(data, xlabels, ylabels) {
-    //for the complete parallel of the CSR we will take the data to be the A array, IA will be the array of nonzero indices in each row st IA[i] = IA[i-1] + NonZero in M ith row
-    //to determine the number of
+    
 
 }
 
 //this function will be necessary because there will need to be a single array comprised of the parameter values used to generate the results.
 // Think of arrays of the xparameter and yparameter values used as coordinates to position results in the canvas; these arrays need updating when more results are added.
 function updateCoordinateArrays(oldArr, newArr) {
+    
     var retArr = [];
-    retArr.concat(oldArr,newArr);
+    retArr = oldArr.concat(newArr);
     retArr.sort();
+    for (var i in retArr) { //removes the potential for duplicates in the arr
+        if (retArr.indexOf(retArr[i]) != retArr.lastIndexOf(retArr[i])) {
+            retArr.splice(i,1)
+        }
+    }
     return retArr
 
 }
@@ -34,9 +39,9 @@ function updateCoordinateArrays(oldArr, newArr) {
 //this is just a basic updater to keep track of the step values that are present in the canvas for the separate parameters
 // i don't suppose that I need to make sure that the arrays have atleast 1 entry?
 function updateKnownSteps(stepOb,xArr,yArr) {
-    var xStep = xArr[1]-xArr[0],
-        yStep = yArr[1]-yArr[0];
-    stepOb.x.push(xStep)
+    var xStep = +(xArr[1]-xArr[0]).toFixed(3), //I don't have much reason to expect that there will be less or more than 3 digits, How to predict?
+        yStep = +(yArr[1]-yArr[0]).toFixed(3);
+    stepOb.x.push(xStep);
     stepOb.y.push(yStep)
 
 }
