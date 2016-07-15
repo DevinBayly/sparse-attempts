@@ -10,9 +10,14 @@
 // would I need to be starting to think about how to make a class out of this new structure? That would allow us to perform plenty of manipulations?
 // I'm currently torn between using the terminology labels vs array for describing the collection of the x&y parameters
 
+//adds coordinate attribute to each of the data objects that are included in the
+
 //this function will take in the original 1 dimensional array (seriesArray likely) and generate a matrix (sparse or condensed) that will be accessed upon plotting, filtering, and generating overlays.
 // **I might be leaning towards using a CSR (compressed sparse Row) structure here to actually accomplish the reasonable sized storing**
+// do I want the data to be sorted at all? Maybe either by row or column parameter value?
 function createStructure(data, xlabels, ylabels) {
+    //for the complete parallel of the CSR we will take the data to be the A array, IA will be the array of nonzero indices in each row st IA[i] = IA[i-1] + NonZero in M ith row
+    //to determine the number of
 
 }
 
@@ -44,6 +49,12 @@ function mergeResults(newData, data) {
 
 }
 
+// this function is for attaching the actual coordinate information to the data objects within data (the array of dataobs)
+function addCoordinateAttr(data,xlabels,ylabels) {
+    for (var ob of data) {
+        ob.coords = {x:xlabels[ob.data[0][0]],y:ylabels[ob.data[0][1]]}
+    }
+}
 
 
 //this function will gather information about the specifications that the user has selected above, and the logical relation between them (AND,OR) and will iteratively progress through the results one by one adding them to a return if they fit the search criteria
