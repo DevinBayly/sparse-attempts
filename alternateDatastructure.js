@@ -8,6 +8,7 @@
  * Created by dev on 7/14/16.
  */
 // would I need to be starting to think about how to make a class out of this new structure? That would allow us to perform plenty of manipulations?
+// I'm currently torn between using the terminology labels vs array for describing the collection of the x&y parameters
 
 //this function will take in the original 1 dimensional array (seriesArray likely) and generate a matrix (sparse or condensed) that will be accessed upon plotting, filtering, and generating overlays.
 // **I might be leaning towards using a CSR (compressed sparse Row) structure here to actually accomplish the reasonable sized storing**
@@ -15,16 +16,31 @@ function createStructure(data, xlabels, ylabels) {
 
 }
 
+//this function will be necessary because there will need to be a single array comprised of the parameter values used to generate the results.
+// Think of arrays of the xparameter and yparameter values used as coordinates to position results in the canvas; these arrays need updating when more results are added.
+function updateCoordinateArrays(oldArr, newArr) {
+    var retArr = [];
+    retArr.concat(oldArr,newArr);
+    retArr.sort();
+    return retArr
+
+}
+
+//this is just a basic updater to keep track of the step values that are present in the canvas for the separate parameters
+// i don't suppose that I need to make sure that the arrays have atleast 1 entry?
+function updateKnownSteps(stepOb,xArr,yArr) {
+    var xStep = xArr[1]-xArr[0],
+        yStep = yArr[1]-yArr[0];
+    stepOb.x.push(xStep)
+    stepOb.y.push(yStep)
+
+}
+
 //very important to be able to add new results into the current structure whatever winds up being selected
 //this could be a good place to update a list that is storing the step values that have been used so far. Probably the call to update the coordinate arrays
 // i suppose this is a lot like the addition property of traditional matrices, it just needs to be tailored to work with matrices that are different sizes (controversial).
 function mergeResults(newData, data) {
-
-    //this function will be necessary because there will need to be a single array comprised of the parameter values used to generate the results.
-    // Think of arrays of the xparameter and yparameter values used as coordinates to position results in the canvas; these arrays need updating when more results are added.
-    function updateCoordinateArrays(oldArr, NewArr) {
-
-    }
+    
 
 }
 
