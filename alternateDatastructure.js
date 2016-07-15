@@ -9,14 +9,27 @@
  */
 // would I need to be starting to think about how to make a class out of this new structure? That would allow us to perform plenty of manipulations?
 // I'm currently torn between using the terminology labels vs array for describing the collection of the x&y parameters
-
+// todo Ask about what I should do for instances of data when there are multiple results at the same point in parameter space?
 //adds coordinate attribute to each of the data objects that are included in the
 
 //this function will take in the original 1 dimensional array (seriesArray likely) and generate a matrix (sparse or condensed) that will be accessed upon plotting, filtering, and generating overlays.
 //I'm just going to try a COO coordinate list of tuples, but then why would I change it from the current object array?
 // do I want the data to be sorted at all? Maybe either by row or column parameter value?
 function createStructure(data, xlabels, ylabels) {
-    
+    retCSR = {IA:[0],A:data,JA:[]} // don't forget to add a zero at the beginning of the IA
+    for (var i in ylabels) { //this will populate the IA array with as many entries as the # of rows + 1
+        var rowCount = 0;
+        data.map(function (ob) {if (ob.coords.y == ylabels[i]) {return ++rowCount}})
+        retCSR.IA.push(retCSR.IA[i] + rowCount ) //this should incrementally give us the number of nonzero results in the row, adding eventuall to a final value which is the total nonzero entries
+    }
+    for (var ob of data) {
+        retCSR.JA.push(xlabels.indexOf(ob.coords.x)) // I believe it is very important not to sort this or else the map of what ob goes with which column will be lost
+    }
+    return retCSR
+}
+
+// this function serves to retrieve data from the complex structure that has been created
+function queryStructure(structure) {
 
 }
 
