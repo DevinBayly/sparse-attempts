@@ -21,12 +21,13 @@
     updateKnownSteps(steps,xAddedLables,yAddedLables);
     addCoordinateAttr(data53,xStartingLabels,yStartingLabels);
     addCoordinateAttr(data24,xAddedLables,yAddedLables)
-    dataAll = Array(data53.concat(data24)) //must make into Array before I can actually perform the sort below that is necessary
-    dataAll.sort(function (obA,obB) { // I wonder if I need to sort down into the y attr also?
-        if (obA.x < obB.x) return 1
-        if (obA.x > obB.x) return -1
+    dataAll = data53.concat(data24) //must make into Array before I can actually perform the sort below that is necessary
+    dataAll.sort(function (obA,obB) { // for CSR I think maybe I need to be sorting on the y, and it needs to sort such that the order is increasing like labels
+        if (obA.coords.y < obB.coords.y) return -1
+        if (obA.coords.y > obB.coords.y) return 1
     })
-    CSRstructure = createStructure(dataAll[0],inclusiveX,inclusiveY)
+    var CSRstructure = createStructure(dataAll,inclusiveX,inclusiveY),
+        topRow  =reconstructRow(CSRstructure,0) //strange, there should be a full set of 21 entries here, must be when I'm attributing things;
 
 
 

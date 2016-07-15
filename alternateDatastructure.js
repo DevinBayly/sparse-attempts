@@ -16,7 +16,7 @@
 //I'm just going to try a COO coordinate list of tuples, but then why would I change it from the current object array?
 // do I want the data to be sorted at all? Maybe either by row or column parameter value?
 function createStructure(data, xlabels, ylabels) {
-    retCSR = {IA:[0],A:data,JA:[]} // don't forget to add a zero at the beginning of the IA
+    retCSR = {IA:[0],A:data,JA:[]}
     for (var i in ylabels) { //this will populate the IA array with as many entries as the # of rows + 1
         var rowCount = 0;
         data.map(function (ob) {if (ob.coords.y == ylabels[i]) {return ++rowCount}})
@@ -28,11 +28,21 @@ function createStructure(data, xlabels, ylabels) {
     return retCSR
 }
 
-// this function serves to retrieve data from the complex structure that has been created
-function queryStructure(structure) {
+//this function recreates a row from the sparse matrix and leaves undefined objects where there isn't a result. The tricky part here is to remember that the ithrow starts counting at 0
+function reconstructRow(structure,ithRow) { // it's also worth bearing in mind that the 0th row is the bottom, lowest y row
+    var retArr = [],
+        startInd = structure.IA[ithRow],
+        endInd = structure.IA[ithRow+1],//normally there would need to be a -1 at the end here, but since slice isn't inclusive i took it away
+        nzEles = structure.A.slice(startInd,endInd),
+        colPos= structure.JA.slice(startInd,endInd);
+    for (var i in nzEles) { // is it too confusing to have i be the Loop control var here, given the parameter choice?
+        retArr[colPos[i]] = nzEles[i]
+    }
+    return retArr
+
+
 
 }
-
 //this function will be necessary because there will need to be a single array comprised of the parameter values used to generate the results.
 // Think of arrays of the xparameter and yparameter values used as coordinates to position results in the canvas; these arrays need updating when more results are added.
 function updateCoordinateArrays(oldArr, newArr) {
