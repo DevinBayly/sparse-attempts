@@ -29,8 +29,8 @@ function createStructure(data, xlabels, ylabels) {
 }
 
 //this function recreates a row from the sparse matrix and leaves undefined objects where there isn't a result. The tricky part here is to remember that the ithrow starts counting at 0
-function reconstructRow(structure,ithRow,rowLen) { // it's also worth bearing in mind that the 0th row is the bottom, lowest y row
-    var retArr = Array(rowLen), // should put something here at the init to make the retArr as long as the row len?
+function reconstructRow(structure,ithRow) { // it's also worth bearing in mind that the 0th row is the bottom, lowest y row
+    var retArr = Array(), //I shouldn't include any empty results just because it will make my life harder later on.
         startInd = structure.IA[ithRow],
         endInd = structure.IA[ithRow+1],//normally there would need to be a -1 at the end here, but since slice isn't inclusive i took it away
         nzEles = structure.A.slice(startInd,endInd),
@@ -44,6 +44,25 @@ function reconstructRow(structure,ithRow,rowLen) { // it's also worth bearing in
 
 
 }
+
+//this function is for returning the nearby result in the selection that has the smallest distance in the parameter space from the current result being evaluated,
+// extra parameters will be specifying which direction is supposed to be under investigation
+function selectMinDist(selection,currentRes,direction) {
+    var initial = currentRes.coords[direction], //this will grab the direction that I'm supposed to be comparing
+        minRes, //this will store the actual data object with smallest positive distance for return
+        minDist; // this is a float,
+    for (var ele of selection ) {
+        var compDist = ele.coords[direction] - initial;
+        if (compDist < minDist && compDist > 0) {// i will have to make sure that this line does what I want it to do.
+            minRes = ele;
+            minDist = compDist;
+        }
+    }
+    return minRes
+}
+
+
+
 //this function will be necessary because there will need to be a single array comprised of the parameter values used to generate the results.
 // Think of arrays of the xparameter and yparameter values used as coordinates to position results in the canvas; these arrays need updating when more results are added.
 function updateCoordinateArrays(oldArr, newArr) {
@@ -74,6 +93,7 @@ function updateKnownSteps(stepOb,xArr,yArr) {
 //this could be a good place to update a list that is storing the step values that have been used so far. Probably the call to update the coordinate arrays
 // i suppose this is a lot like the addition property of traditional matrices, it just needs to be tailored to work with matrices that are different sizes (controversial).
 function mergeResults(newData, data) {
+    //what I did in the actual html script tag was to simply concat the two arrays into one large one, and then sort on the y parameter, will it continue to be this simple?
     
 
 }

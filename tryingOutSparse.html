@@ -27,9 +27,11 @@
         if (obA.coords.y > obB.coords.y) return 1
     })
     var CSRstructure = createStructure(dataAll,inclusiveX,inclusiveY),
-        topRow  =reconstructRow(CSRstructure,0,inclusiveX.length),
-        nextRowUp = reconstructRow(CSRstructure,1,inclusiveX.length);// minor strangeness caused by the way I created the sets of data that being used. Unforntunately I picked ranges and steps that include the same coords in a few cases.
+        topRow  =reconstructRow(CSRstructure,0),
+        nextRowUp = reconstructRow(CSRstructure,1);// minor strangeness caused by the way I created the sets of data that being used. Unforntunately I picked ranges and steps that include the same coords in a few cases.
     // as a result, I wind up with data overwriting (instead of 21 results from a row I get 19, but it would probably cause more trouble than its worth to try to save data that is covering same spot.
+
+    //ok now it's time to make sure that I have the method in which I can perform the selections
 
 
 
