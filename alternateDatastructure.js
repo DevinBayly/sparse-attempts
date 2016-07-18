@@ -38,28 +38,15 @@ function reconstructRow(structure,ithRow) { // it's also worth bearing in mind t
     for (var i in nzEles) { // is it too confusing to have i be the Loop control var here, given the parameter choice?
         retArr[colPos[i]] = nzEles[i] //it appears that col # three gets used twice and so does 5, but they are also objects placed at the exact same position in the canvas...
     }
-    //should this be filtered to remove the undefineds just to speed it up??
+    // i will be removing the undefineds because it will make my life easier later on.
+    retArr = retArr.filter(function (ele) {return ele != 'undefined'})
     return retArr
 
 
 
 }
 
-//this function is for returning the nearby result in the selection that has the smallest distance in the parameter space from the current result being evaluated,
-// extra parameters will be specifying which direction is supposed to be under investigation
-function selectMinDist(selection,currentRes,direction) {
-    var initial = currentRes.coords[direction], //this will grab the direction that I'm supposed to be comparing
-        minRes, //this will store the actual data object with smallest positive distance for return
-        minDist; // this is a float,
-    for (var ele of selection ) {
-        var compDist = ele.coords[direction] - initial;
-        if (compDist < minDist && compDist > 0) {// i will have to make sure that this line does what I want it to do.
-            minRes = ele;
-            minDist = compDist;
-        }
-    }
-    return minRes
-}
+
 
 
 
@@ -115,18 +102,29 @@ function filterResults(data) {
 //this function will calculate the difference between each result and its neighbors upon a selected metric. This difference will be compared to a user input value, and will dictate whether there are colored contour lines added inbetween results to help visualize the change in results based on parameter change.
 //don't forget that this will need to have some sort of threshold for the number of results that are coming back from the geometric selection before proceeding
 //      if there happens to be too many decrease the distance value to the next smallest step value (x&y step arrays) that exists from the calculations.
-function compareToNeighbors(data, xSteps, ySteps) {
+function compareToNeighbors(data, stepOb) {
 
     //this function is a helper for compareToNeighbors which will generate an object composed of other results within a specific distance from the result of interest (one currently being investigated out of all).
     //the current idea here is to go with a circular geometric area from which we will select all the results within the radius distance from the central result.
     //the other option which might eventually be easier is to try to use a square shape in the parameter space.***I think this is what I will lean towards***
-    function geometricSelection(data, centralResult, distance) {
+    function proximitySelection(data, centralResult, distance) {
 
     }
 
-    //this function will take whatever number of results have been selected within the distance from the focusObj (result under investigation), and will now attach distance values to each object in the geometric selection specific to the x or y parameter
-    function assignDistance(focusObj, geoSelected) {
-
+    //this function is for returning the nearby result in the selection that has the smallest distance in the parameter space from the current result being evaluated,
+    // extra parameters will be specifying which direction is supposed to be under investigation
+    function selectMinDist(selection, currentRes, direction) {
+        var initial = currentRes.coords[direction], //this will grab the direction that I'm supposed to be comparing
+            minRes, //this will store the actual data object with smallest positive distance for return
+            minDist; // this is a float,
+        for (var ele of selection) {
+            var compDist = ele.coords[direction] - initial;
+            if (compDist < minDist && compDist > 0) {// i will have to make sure that this line does what I want it to do.
+                minRes = ele;
+                minDist = compDist;
+            }
+        }
+        return minRes
     }
 
 }
