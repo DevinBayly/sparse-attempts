@@ -29,21 +29,26 @@ function createStructure(data, xlabels, ylabels) {
 }
 
 //this function recreates a row from the sparse matrix and leaves undefined objects where there isn't a result. The tricky part here is to remember that the ithrow starts counting at 0
-function reconstructRow(structure,ithRow) { // it's also worth bearing in mind that the 0th row is the bottom, lowest y row
+    //this function is an inclusive slice function for the compressed sparse matrix structure
+function reconstructMatrixBySection(structure,startRow,endRow,startCol,endCol) { // it's also worth bearing in mind that the 0th row is the bottom, lowest y row
     var retArr = Array(), //I shouldn't include any empty results just because it will make my life harder later on.
-        startInd = structure.IA[ithRow],
-        endInd = structure.IA[ithRow+1],//normally there would need to be a -1 at the end here, but since slice isn't inclusive i took it away
+        startInd = structure.IA[startRow],
+        endInd = structure.IA[endRow+1],//normally there would need to be a -1 at the end here, but since slice isn't inclusive i took it away
         nzEles = structure.A.slice(startInd,endInd),
-        colPos= structure.JA.slice(startInd,endInd);
-    for (var i in nzEles) { // is it too confusing to have i be the Loop control var here, given the parameter choice?
-        retArr[colPos[i]] = nzEles[i] //it appears that col # three gets used twice and so does 5, but they are also objects placed at the exact same position in the canvas...
+        colPos = structure.JA.slice(startInd,endInd);
+    for (var i in colPos) {
+        if (colPos[i] > endCol || colPos[i] < startCol) { // todo does this need to be inclusive or what?
+            nzEles[i] = undefined//if the result belongs to a column that we aren't interested in then it shall be removed from the selection.
+            // i think there could be a way to simply change the actual structure, and do away with the filtering below.
+        }
     }
-    // i will be removing the undefineds because it will make my life easier later on.
-    retArr = retArr.filter(function (ele) {return ele != 'undefined'})
+    //please note that retArr isn't the same as nzEles because they are different lengths for one, and retArr is sorted with duplicate dataentries (same parameter coords) paired down.
+    //todo figure out whether the fact that the results at the same point get overwritten is going to cause problems later on.
+        //well one thing is for sure, it won't be considered to be a closer result given that the difference between the distance for duplicate dots isn't >0 so it wont pass test below.
+    //now i will filter out the undefineds
+
+    retArr = nzEles.filter(function (ele) {if (ele != 'undefined') return ele}); //currently this only contains items in the row or column that we are interested in, pretty great huh?
     return retArr
-
-
-
 }
 
 
