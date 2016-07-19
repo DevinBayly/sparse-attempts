@@ -4,6 +4,12 @@
     <script src="../temp_store/jquery.js" type="text/javascript"></script>
     <script src="alternateDatastructure.js" type="text/javascript"></script>
 
+    <!--one question that I have about the comparison is whether we want the best candidate in either parameter direction, or if there is some other form of comparison we want?
+
+
+-->
+
+
 </head>
 <body>
 <script>
@@ -27,12 +33,7 @@
         if (obA.coords.y > obB.coords.y) return 1
     })
     var CSRstructure = createStructure(dataAll,inclusiveX,inclusiveY),
-        topRow  =reconstructMatrixBySection(CSRstructure,0,1,0,10);
-//        nextRowUp = reconstructMatrixBySection(CSRstructure,1,1),
-//            bothRows = reconstructMatrixBySection(CSRstructure,0,1);// minor strangeness caused by the way I created the s\ets of data that being used. Unforntunately I picked ranges and steps that include the same coords in a few cases.
-//    // as a result, I wind up with data overwriting (instead of 21 results from a row I get 19, but it would probably cause more trouble than its worth to try to save data that is covering same spot.
-
-    //ok now it's time to make sure that I have the method in which I can perform the selections
+        sliceRow  =reconstructMatrixBySection(CSRstructure,0,1,0,10);
 
 
 
