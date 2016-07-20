@@ -40,7 +40,7 @@ function reconstructMatrixBySection(structure,startRow,endRow,startCol,endCol) {
         if (colPos[i] > endCol || colPos[i] < startCol) { // todo does this need to be inclusive or what?
             nzEles[i] = undefined//if the result belongs to a column that we aren't interested in then it shall be removed from the selection.
             // i think there could be a way to simply change the actual structure, and do away with the filtering below.
-        };;;
+        }
     }
     //please note that retArr isn't the same as nzEles because they are different lengths for one, and retArr is sorted with duplicate dataentries (same parameter coords) paired down.
     //todo figure out whether the fact that the results at the same point get overwritten is going to cause problems later on.
@@ -111,74 +111,33 @@ function filterResults(data) {
 function compareToNeighbors(structure, stepOb, xArr, yArr) {
 
     //this function returns a result that has been decided to be the closest neighbor to the currently examined dot for each parameter direction, and also according to boundary rules
-    function chooseClosestNeighbor(selection,currentRes,paramDir,boundaryCase) {
-        switch (boundaryCase) { 
-                //on first try unfortunately realized that there will be a lot of ties if only considering parameters coords alone
-                //todo factor in the other parameter somehow
-            case 'bottom left'://this and cases above break case have the same selection rules. I know having all of this text and similar case grouping is lengthy, but i think it's clearer this way.
-            case 'middle middle':
-            case 'bottom middle':
-            case 'middle left':
-                var initial = currentRes.coords[paramDir], // each case will have a variation of this code block
-                    difArr = selection.map(function (ob) { 
-                        if ((ob.coords[paramDir] - initial) > 0 ) return ob.coords[paramDir] - initial;
-                        return undefined
-                            }); // this should allow us to only get a positive float array to minimize with indexing intact for ob retrieval,
-                return selection[difArr.indexOf(d3.min(difArr))] // will I need to worry about duplicates? I guess not because that suggests that they are the same dst
-            case 'top middle':
-            case 'top left':
-                if (paramDir == 'x') {
-                    var initial = currentRes.coords[paramDir],
-                        difArr = selection.map(function (ob) {
-                            if ((ob.coords[paramDir] - initial) > 0) return ob.coords[paramDir] - initial;
-                            return undefined
-                        });
-                    return selection[difArr.indexOf(d3.min(difArr))]
-                } else if (paramDir == 'y') {
-                    var initial = currentRes.coords[paramDir],
-                        difArr = selection.map(function (ob) {
-                            if ((ob.coords[paramDir] - initial) < 0) return ob.coords[paramDir] - initial;
-                            return undefined
-                        }); // this time around we want the negatives only to maximize.
-                    return selection[difArr.indexOf(d3.max(difArr))] // want the max this time because the current dot has none above it in the column, so largest (most positive) value gets indexed
-                }
-            case 'bottom right':
-            case 'middle right':
-                if (paramDir == 'x') {
-                    var initial = currentRes.coords[paramDir],
-                        difArr = selection.map(function (ob) {
-                            if ((ob.coords[paramDir] - initial) < 0) return ob.coords[paramDir] - initial;
-                            return undefined
-                        });
-                    return selection[difArr.indexOf(d3.max(difArr))]
-                } else if (paramDir == 'y') {
-                    var initial = currentRes.coords[paramDir],
-                        difArr = selection.map(function (ob) {
-                            if ((ob.coords[paramDir] - initial) > 0) return ob.coords[paramDir] - initial;
-                            return undefined
-                        });
-                    return selection[difArr.indexOf(d3.min(difArr))] // want the max this time because the current dot has none above it in the column, so largest (most positive) value gets indexed
-                }
-            case 'top right':
-                if (paramDir == 'x') {
-                    var initial = currentRes.coords[paramDir],
-                        difArr = selection.map(function (ob) {
-                            if ((ob.coords[paramDir] - initial) < 0) return ob.coords[paramDir] - initial;
-                            return undefined
-                        });
-                    return selection[difArr.indexOf(d3.max(difArr))]
-                } else if (paramDir == 'y') {
-                    var initial = currentRes.coords[paramDir],
-                        difArr = selection.map(function (ob) {
-                            if ((ob.coords[paramDir] - initial) < 0) return ob.coords[paramDir] - initial;
-                            return undefined
-                        });
-                    return selection[difArr.indexOf(d3.max(difArr))]// want the max this time because the current dot has none above it in the column, so largest (most positive) value gets indexed
-                }
+    function chooseClosestNeighbor(selection, currentRes, dir, hairSplitVal) {
+        //dir is either going to be right or up in each case
+        switch (dir) {
+            case 'right': // I feel like the up and the right aren't going to be different enough, there needs to be some preference towards similar y's
+                difArr = selection.map(function (ob) {
+                    var xDst = ob.coords.x - currentRes.coords.x,
+                        yDst = (ob.coords.y - currentRes.coords.y) * hairSplitVal, //must scale y diff to favor the cases in the right"er direction
+                        if (xDst > 0 && yDst > 0) {
+                    return Math.sqrt(xDst * xDst + yDst * yDst)}; //why doesn't js just have a syntax for power, i don't feel like invoking math?
+                    return undefined
+                }); // this should allow us to only get a positive float array to minimize with indexing intact for ob retrieval,
+                return selection[difArr.indexOf(d3.min(difArr))];
+
+            case 'up':
+                difArr = selection.map(function (ob) {
+                    var xDst = (ob.coords.x - currentRes.coords.x) * hairSplitVal, //accentuate the differences in the x favoring results above current
+                        yDst = ob.coords.y - currentRes.coords.y,
+                        if (xDst > 0 && yDst > 0) {
+                    return Math.sqrt(xDst * xDst + yDst * yDst)}; //why doesn't js just have a syntax for power, i don't feel like invoking math?
+                    return undefined
+                }); // this should allow us to only get a positive float array to minimize with indexing intact for ob retrieval,
+                return selection[difArr.indexOf(d3.min(difArr))];
         }
     }
 
     var obInd = 0;
+    debugger;
 
     while (obInd < structure.A.length) { // this might become a while loop situation given the nature of the changing step values upon selection lengths
         // create some sort of control variable for the step val index
@@ -190,163 +149,61 @@ function compareToNeighbors(structure, stepOb, xArr, yArr) {
             yStepInd = 0, //these will be used to control amount of results that get passed to the chooseClosestNeighbor
             xStepInd = 0;
         switch ((currentRowInd == topRowInd,
-                currentColInd == farRightColInd,
-                currentRowInd == 0,
-                currentColInd == 0)) { //each of these will help us to determine what kind of parameters we need to include in the calls below
+                currentColInd == farRightColInd)) { //each of these will help us to determine what kind of parameters we need to include in the calls below
 
                 // are the breaks going to exit the switch or the while?
 
-            case (false,false,true,true): //bottom left result
+            case (false, false): //all non top row or right column results
                 // get the selection
-                var upperRowBoundary = yArr.indexOf(ob.coords.y + stepOb.y[yStepInd]), // stepOb should be arranged from large to small
-                    rightColBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]);
-                selectedResults = reconstructMatrixBySection(structure,0,upperRowBoundary,0,rightColBoundary);
+                var rowBoundary = yArr.indexOf(ob.coords.y + stepOb.y[yStepInd]), // stepOb is arranged from large to small
+                    colBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]),
+                    selectedResults = reconstructMatrixBySection(structure, currentRowInd, rowBoundary, currentColInd, colBoundary);
                 while (selectedResults.length > 10) { //inner while loop is to allow the step values arr to help adjust the amount of results we get back
                     ++yStepInd;
                     ++xStepInd;
-                    var upperRowBoundary = yArr.indexOf(ob.coords.y + stepOb.y[yStepInd]), // at this point I should also check whether we are out of step value indexes.
-                        rightColBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]);
-                    selectedResults = reconstructMatrixBySection(structure,0,upperRowBoundary,0,rightColBoundary);
+                    var rowBoundary = yArr.indexOf(ob.coords.y + stepOb.y[yStepInd]), // todo package the step increment in a try if there is index bugging
+                        colBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]),
+                        selectedResults = reconstructMatrixBySection(structure, currentRowInd, rowBoundary, currentColInd, colBoundary);
 
                 }
-                closestX = chooseClosestNeighbor(selectedResults,ob,'x','bottom left');
-                closestY = chooseClosestNeighbor(selectedResults,ob,'y','bottom left');
+                var hairSplit = 1,
+                    closestX = chooseClosestNeighbor(selectedResults, ob, 'right', hairSplit),
+                    closestY = chooseClosestNeighbor(selectedResults, ob, 'up', hairSplit);
+                while (closestX == closestY) {
+                    debugger;
+                    hairSplit += .25; // if you consult the choose neighbor code the hairsplit can be seen helping to separate the right results into a 'closer' category when we are trying to choose for the right vice verse for the up
+                    closestX = chooseClosestNeighbor(selectedResults, ob, 'right', hairSplit);
+                    closestY = chooseClosestNeighbor(selectedResults, ob, 'up', hairSplit);
+                }
                 // next it will be good to create some sort of actual metric comparison function to call below
                 //todo maake metric comparison function
+                //todo email lia asking how to get info for results metrics that arent currently available in color or rad.
                 break;
-            case (false,false,false,true): //middle of leftmost column
-                var upperRowBoundary = yArr.indexOf(ob.coords.y + stepOb.y[yStepInd]),
-                    lowerRowBoundary = yArr.indexOf(ob.coords.y - stepOb.y[yStepInd]), // now that we are on a current result not in the bottom row, we have to assign a lower boundary value for the section slice
-                    rightColBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]);
-                selectedResults = reconstructMatrixBySection(structure,lowerRowBoundary,upperRowBoundary,0,rightColBoundary);
+            case (true, false): //top row
+                var rightColBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]),
+                    selectedResults = reconstructMatrixBySection(structure, currentRowInd, currentRowInd, currentColInd, rightColBoundary); // return only items from the row
                 while (selectedResults.length > 10) {
-                    ++yStepInd;
                     ++xStepInd;
-                    var upperRowBoundary = yArr.indexOf(ob.coords.y + stepOb.y[yStepInd]),
-                        lowerRowBoundary = yArr.indexOf(ob.coords.y - stepOb.y[yStepInd]),
-                        rightColBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]);
-                    selectedResults = reconstructMatrixBySection(structure,lowerRowBoundary,upperRowBoundary,0,rightColBoundary);
+                    var rightColBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]),
+                        selectedResults = reconstructMatrixBySection(structure, currentRowInd, currentRowInd, currentColInd, rightColBoundary);
 
                 }
-                closestX = chooseClosestNeighbor(selectedResults,ob,'x','middle left');
-                closestY = chooseClosestNeighbor(selectedResults,ob,'y','middle left');
+                var hairSplit = 1,
+                    closestX = chooseClosestNeighbor(selectedResults, ob, 'right', hairSplit);
                 break;
-            case (true,false,false,true): //top of leftmost column
-                var lowerRowBoundary = yArr.indexOf(ob.coords.y - stepOb.y[yStepInd]),
-                    rightColBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]);
-                selectedResults = reconstructMatrixBySection(structure,lowerRowBoundary,topRowInd,0,rightColBoundary);
+            case (false, true): //right col
+                var rowBoundary = yArr.indexOf(ob.coords.y - stepOb.y[yStepInd]),
+                    selectedResults = reconstructMatrixBySection(structure, currentRowInd, rowBoundary, currentColInd, currentColInd);
                 while (selectedResults.length > 10) {
                     ++yStepInd;
-                    ++xStepInd;
-                    var lowerRowBoundary = yArr.indexOf(ob.coords.y - stepOb.y[yStepInd]),
-                        rightColBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]);
-                    selectedResults = reconstructMatrixBySection(structure,lowerRowBoundary,topRowInd,0,rightColBoundary);
+                    var rowBoundary = yArr.indexOf(ob.coords.y - stepOb.y[yStepInd]),
+                        selectedResults = reconstructMatrixBySection(structure, currentRowInd, rowBoundary, currentColInd, currentColInd);
 
                 }
-                closestX = chooseClosestNeighbor(selectedResults,ob,'x','top left');
-                closestY = chooseClosestNeighbor(selectedResults,ob,'y','top left');
+                var hairSplit = 1,
+                    closestY = chooseClosestNeighbor(selectedResults, ob, 'up', hairSplit);
                 break;
-            case (false,false,true,false): //bottom row inbetween left and right columns
-                var upperRowBoundary = yArr.indexOf(ob.coords.y + stepOb.y[yStepInd]),
-                    rightColBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]),
-                    leftColBoundary = xArr.indexOf(ob.coords.x - stepOb.x[xStepInd]);
-                selectedResults = reconstructMatrixBySection(structure,0,upperRowBoundary,leftColBoundary,rightColBoundary);
-                while (selectedResults.length > 10) {
-                    ++yStepInd;
-                    ++xStepInd;
-                    var upperRowBoundary = yArr.indexOf(ob.coords.y + stepOb.y[yStepInd]),
-                        rightColBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]),
-                        leftColBoundary = xArr.indexOf(ob.coords.x - stepOb.x[xStepInd]);
-                    selectedResults = reconstructMatrixBySection(structure,0,upperRowBoundary,leftColBoundary,rightColBoundary);
-
-                }
-                closestX = chooseClosestNeighbor(selectedResults,ob,'x','bottom middle');
-                closestY = chooseClosestNeighbor(selectedResults,ob,'y','bottom middle');
-                break;
-            case (false,false,false,false): //middle rows middle columns
-                var upperRowBoundary = yArr.indexOf(ob.coords.y + stepOb.y[yStepInd]),
-                    lowerRowBoundary = yArr.indexOf(ob.coords.y - stepOb.y[yStepInd]),
-                    rightColBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]),
-                    leftColBoundary = xArr.indexOf(ob.coords.x - stepOb.x[xStepInd]);
-                selectedResults = reconstructMatrixBySection(structure,lowerRowBoundary,upperRowBoundary,leftColBoundary,rightColBoundary);
-                while (selectedResults.length > 10) {
-                    ++yStepInd;
-                    ++xStepInd;
-                    var upperRowBoundary = yArr.indexOf(ob.coords.y + stepOb.y[yStepInd]),
-                        lowerRowBoundary = yArr.indexOf(ob.coords.y - stepOb.y[yStepInd]),
-                        rightColBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]),
-                        leftColBoundary = xArr.indexOf(ob.coords.x - stepOb.x[xStepInd]);
-                    selectedResults = reconstructMatrixBySection(structure,lowerRowBoundary,upperRowBoundary,leftColBoundary,rightColBoundary);
-
-                }
-                closestX = chooseClosestNeighbor(selectedResults,ob,'x','middle middle');
-                closestY = chooseClosestNeighbor(selectedResults,ob,'y','middle middle');
-                break;
-            case (true,false,false,false): //top row middle columns
-                var lowerRowBoundary = yArr.indexOf(ob.coords.y - stepOb.y[yStepInd]),
-                    rightColBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]),
-                    leftColBoundary = xArr.indexOf(ob.coords.x - stepOb.x[xStepInd]);
-                selectedResults = reconstructMatrixBySection(structure,lowerRowBoundary,topRowInd,leftColBoundary,rightColBoundary); //when the position calls for it the topRowInd or other position variable created above may be used.
-                while (selectedResults.length > 10) {
-                    ++yStepInd;
-                    ++xStepInd;
-                    var lowerRowBoundary = yArr.indexOf(ob.coords.y - stepOb.y[yStepInd]),
-                        rightColBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]),
-                        leftColBoundary = xArr.indexOf(ob.coords.x - stepOb.x[xStepInd]);
-                    selectedResults = reconstructMatrixBySection(structure,lowerRowBoundary,topRowInd,leftColBoundary,rightColBoundary);
-
-                }
-                closestX = chooseClosestNeighbor(selectedResults,ob,'x','top middle');
-                closestY = chooseClosestNeighbor(selectedResults,ob,'y','top middle');
-                break;
-            case (false,true,true,false): //bottom row rightmost column
-                var leftColBoundary = xArr.indexOf(ob.coords.x - stepOb.x[xStepInd]),
-                    upperRowBoundary = yArr.indexOf(ob.coords.y + stepOb.y[yStepInd]);
-                selectedResults = reconstructMatrixBySection(structure,0,upperRowBoundary,leftColBoundary,farRightColInd);
-                while (selectedResults.length > 10) {
-                    ++yStepInd;
-                    ++xStepInd;
-                    var leftColBoundary = xArr.indexOf(ob.coords.x - stepOb.x[xStepInd]),
-                        upperRowBoundary = yArr.indexOf(ob.coords.y + stepOb.y[yStepInd]);
-                    selectedResults = reconstructMatrixBySection(structure,0,upperRowBoundary,leftColBoundary,farRightColInd);
-
-                }
-                closestX = chooseClosestNeighbor(selectedResults,ob,'x','bottom right');
-                closestY = chooseClosestNeighbor(selectedResults,ob,'y','bottom right');
-                break;
-            case (false,true,false,false): //middle rows rightmost column
-                var leftColBoundary = xArr.indexOf(ob.coords.x - stepOb.x[xStepInd]),
-                    upperRowBoundary = yArr.indexOf(ob.coords.y + stepOb.y[yStepInd]),
-                    lowerRowBoundary = yArr.indexOf(ob.coords.y - stepOb.y[yStepInd]);
-                selectedResults = reconstructMatrixBySection(structure,lowerRowBoundary,upperRowBoundary,leftColBoundary,farRightColInd);
-                while (selectedResults.length > 10) {
-                    ++yStepInd;
-                    ++xStepInd;
-                    var leftColBoundary = xArr.indexOf(ob.coords.x - stepOb.x[xStepInd]),
-                        upperRowBoundary = yArr.indexOf(ob.coords.y + stepOb.y[yStepInd]),
-                        lowerRowBoundary = yArr.indexOf(ob.coords.y - stepOb.y[yStepInd]);
-                    selectedResults = reconstructMatrixBySection(structure,lowerRowBoundary,upperRowBoundary,leftColBoundary,farRightColInd);
-
-                }
-                closestX = chooseClosestNeighbor(selectedResults,ob,'x','middle right');
-                closestY = chooseClosestNeighbor(selectedResults,ob,'y','middle right');
-                break;
-            case (true,true,false,false): //top right result
-                var leftColBoundary = xArr.indexOf(ob.coords.x - stepOb.x[xStepInd]),
-                    lowerRowBoundary = yArr.indexOf(ob.coords.y - stepOb.y[yStepInd]);
-                selectedResults = reconstructMatrixBySection(structure,lowerRowBoundary,topRowInd,leftColBoundary,farRightColInd);
-                while (selectedResults.length > 10) {
-                    ++yStepInd;
-                    ++xStepInd;
-                    var leftColBoundary = xArr.indexOf(ob.coords.x - stepOb.x[xStepInd]),
-                        lowerRowBoundary = yArr.indexOf(ob.coords.y - stepOb.y[yStepInd]);
-                    selectedResults = reconstructMatrixBySection(structure,lowerRowBoundary,topRowInd,leftColBoundary,farRightColInd);
-
-                }
-                closestX = chooseClosestNeighbor(selectedResults,ob,'x','top right');
-                closestY = chooseClosestNeighbor(selectedResults,ob,'y','top right');
-                break;
-
+            // don't worry about the top right dot, it has already recieved all the comparisons that it needs
         }
         ++obInd
     }
