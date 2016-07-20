@@ -112,7 +112,9 @@ function compareToNeighbors(structure, stepOb, xArr, yArr) {
 
     //this function returns a result that has been decided to be the closest neighbor to the currently examined dot for each parameter direction, and also according to boundary rules
     function chooseClosestNeighbor(selection,currentRes,paramDir,boundaryCase) {
-        switch (boundaryCase) { //todo return and clean up the comments from copied and pasted blocks
+        switch (boundaryCase) { 
+                //on first try unfortunately realized that there will be a lot of ties if only considering parameters coords alone
+                //todo factor in the other parameter somehow
             case 'bottom left'://this and cases above break case have the same selection rules. I know having all of this text and similar case grouping is lengthy, but i think it's clearer this way.
             case 'middle middle':
             case 'bottom middle':
@@ -122,7 +124,7 @@ function compareToNeighbors(structure, stepOb, xArr, yArr) {
                         if ((ob.coords[paramDir] - initial) > 0 ) return ob.coords[paramDir] - initial;
                         return undefined
                             }); // this should allow us to only get a positive float array to minimize with indexing intact for ob retrieval,
-                return selection[selection.indexOf(Math.min(difArr))] // will I need to worry about duplicates? I guess not because that suggests that they are the same dst
+                return selection[difArr.indexOf(d3.min(difArr))] // will I need to worry about duplicates? I guess not because that suggests that they are the same dst
             case 'top middle':
             case 'top left':
                 if (paramDir == 'x') {
@@ -131,14 +133,14 @@ function compareToNeighbors(structure, stepOb, xArr, yArr) {
                             if ((ob.coords[paramDir] - initial) > 0) return ob.coords[paramDir] - initial;
                             return undefined
                         });
-                    return selection[selection.indexOf(Math.min(difArr))]
+                    return selection[difArr.indexOf(d3.min(difArr))]
                 } else if (paramDir == 'y') {
                     var initial = currentRes.coords[paramDir],
                         difArr = selection.map(function (ob) {
                             if ((ob.coords[paramDir] - initial) < 0) return ob.coords[paramDir] - initial;
                             return undefined
                         }); // this time around we want the negatives only to maximize.
-                    return selection[selection.indexOf(Math.max(difArr))]; // want the max this time because the current dot has none above it in the column, so largest (most positive) value gets indexed
+                    return selection[difArr.indexOf(d3.max(difArr))] // want the max this time because the current dot has none above it in the column, so largest (most positive) value gets indexed
                 }
             case 'bottom right':
             case 'middle right':
@@ -148,14 +150,14 @@ function compareToNeighbors(structure, stepOb, xArr, yArr) {
                             if ((ob.coords[paramDir] - initial) < 0) return ob.coords[paramDir] - initial;
                             return undefined
                         });
-                    return selection[selection.indexOf(Math.max(difArr))]
+                    return selection[difArr.indexOf(d3.max(difArr))]
                 } else if (paramDir == 'y') {
                     var initial = currentRes.coords[paramDir],
                         difArr = selection.map(function (ob) {
                             if ((ob.coords[paramDir] - initial) > 0) return ob.coords[paramDir] - initial;
                             return undefined
                         });
-                    return selection[selection.indexOf(Math.max(difArr))]; // want the max this time because the current dot has none above it in the column, so largest (most positive) value gets indexed
+                    return selection[difArr.indexOf(d3.min(difArr))] // want the max this time because the current dot has none above it in the column, so largest (most positive) value gets indexed
                 }
             case 'top right':
                 if (paramDir == 'x') {
@@ -164,16 +166,16 @@ function compareToNeighbors(structure, stepOb, xArr, yArr) {
                             if ((ob.coords[paramDir] - initial) < 0) return ob.coords[paramDir] - initial;
                             return undefined
                         });
-                    return selection[selection.indexOf(Math.max(difArr))]
+                    return selection[difArr.indexOf(d3.max(difArr))]
                 } else if (paramDir == 'y') {
                     var initial = currentRes.coords[paramDir],
                         difArr = selection.map(function (ob) {
                             if ((ob.coords[paramDir] - initial) < 0) return ob.coords[paramDir] - initial;
                             return undefined
                         });
-                    return selection[selection.indexOf(Math.max(difArr))]; // want the max this time because the current dot has none above it in the column, so largest (most positive) value gets indexed
+                    return selection[difArr.indexOf(d3.max(difArr))]// want the max this time because the current dot has none above it in the column, so largest (most positive) value gets indexed
                 }
-        };;;
+        }
     }
 
     var obInd = 0;
@@ -182,7 +184,7 @@ function compareToNeighbors(structure, stepOb, xArr, yArr) {
         // create some sort of control variable for the step val index
         var ob = structure.A[obInd],
             currentRowInd = yArr.indexOf(ob.coords.y),
-            currentColInd = xArr.indexOf(Ob.coords.x),
+            currentColInd = xArr.indexOf(ob.coords.x),
             topRowInd = yArr.length -1,
             farRightColInd = xArr.length -1,
             yStepInd = 0, //these will be used to control amount of results that get passed to the chooseClosestNeighbor
@@ -346,9 +348,8 @@ function compareToNeighbors(structure, stepOb, xArr, yArr) {
                 break;
 
         }
+        ++obInd
     }
-
-
 }
 
 
