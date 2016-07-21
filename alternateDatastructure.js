@@ -40,7 +40,7 @@ function reconstructMatrixBySection(structure,startRow,endRow,startCol,endCol) {
         if (colPos[i] > endCol || colPos[i] < startCol) { // todo does this need to be inclusive or what?
             nzEles[i] = undefined//if the result belongs to a column that we aren't interested in then it shall be removed from the selection.
             // i think there could be a way to simply change the actual structure, and do away with the filtering below.
-        }
+        };
     }
     //please note that retArr isn't the same as nzEles because they are different lengths for one, and retArr is sorted with duplicate dataentries (same parameter coords) paired down.
     //todo figure out whether the fact that the results at the same point get overwritten is going to cause problems later on.
@@ -115,97 +115,107 @@ function compareToNeighbors(structure, stepOb, xArr, yArr) {
         //dir is either going to be right or up in each case
         switch (dir) {
             case 'right': // I feel like the up and the right aren't going to be different enough, there needs to be some preference towards similar y's
-                difArr = selection.map(function (ob) {
+                var difArr = selection.map(function (ob) {
                     var xDst = ob.coords.x - currentRes.coords.x,
-                        yDst = (ob.coords.y - currentRes.coords.y) * hairSplitVal, //must scale y diff to favor the cases in the right"er direction
-                        if (xDst > 0 && yDst > 0) {
-                    return Math.sqrt(xDst * xDst + yDst * yDst)}; //why doesn't js just have a syntax for power, i don't feel like invoking math?
+                        yDst = (ob.coords.y - currentRes.coords.y) * hairSplitVal; //must scale y diff to favor the cases in the right"er direction
+                        if (xDst >= 0 && yDst >= 0) {
+                    return Math.sqrt(xDst * xDst + yDst * yDst)} //why doesn't js just have a syntax for power, i don't feel like invoking math?
                     return undefined
                 }); // this should allow us to only get a positive float array to minimize with indexing intact for ob retrieval,
                 return selection[difArr.indexOf(d3.min(difArr))];
 
             case 'up':
-                difArr = selection.map(function (ob) {
-                    var xDst = (ob.coords.x - currentRes.coords.x) * hairSplitVal, //accentuate the differences in the x favoring results above current
-                        yDst = ob.coords.y - currentRes.coords.y,
-                        if (xDst > 0 && yDst > 0) {
-                    return Math.sqrt(xDst * xDst + yDst * yDst)}; //why doesn't js just have a syntax for power, i don't feel like invoking math?
+                var difArr = selection.map(function (ob) {
+                    var xDst = (ob.coords.x - currentRes.coords.x) * hairSplitVal; //accentuate the differences in the x favoring results above current
+                        yDst = ob.coords.y - currentRes.coords.y;
+                        if (xDst >= 0 && yDst >= 0) {
+                    return Math.sqrt(xDst * xDst + yDst * yDst)} //why doesn't js just have a syntax for power, i don't feel like invoking math?
                     return undefined
                 }); // this should allow us to only get a positive float array to minimize with indexing intact for ob retrieval,
                 return selection[difArr.indexOf(d3.min(difArr))];
         }
     }
 
-    var obInd = 0;
-    debugger;
 
-    while (obInd < structure.A.length) { // this might become a while loop situation given the nature of the changing step values upon selection lengths
+    for (var ob of structure.A) { //do I need to sort this by x coord?
         // create some sort of control variable for the step val index
-        var ob = structure.A[obInd],
-            currentRowInd = yArr.indexOf(ob.coords.y),
+        var currentRowInd = yArr.indexOf(ob.coords.y),
             currentColInd = xArr.indexOf(ob.coords.x),
-            topRowInd = yArr.length -1,
-            farRightColInd = xArr.length -1,
+            topRowInd = yArr.length - 1,
+            farRightColInd = xArr.length - 1,
             yStepInd = 0, //these will be used to control amount of results that get passed to the chooseClosestNeighbor
             xStepInd = 0;
         switch ((currentRowInd == topRowInd,
-                currentColInd == farRightColInd)) { //each of these will help us to determine what kind of parameters we need to include in the calls below
+        currentColInd == farRightColInd)) { //each of these will help us to determine what kind of parameters we need to include in the calls below
 
-                // are the breaks going to exit the switch or the while?
+            // are the breaks going to exit the switch or the while?
 
             case (false, false): //all non top row or right column results
                 // get the selection
-                var rowBoundary = yArr.indexOf(ob.coords.y + stepOb.y[yStepInd]), // stepOb is arranged from large to small
-                    colBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]),
+                var rowBoundary = yArr.indexOf(+(ob.coords.y + stepOb.y[yStepInd]).toFixed(2)), // stepOb is arranged from large to small
+                    colBoundary = xArr.indexOf(+(ob.coords.x + stepOb.x[xStepInd]).toFixed(2)),
                     selectedResults = reconstructMatrixBySection(structure, currentRowInd, rowBoundary, currentColInd, colBoundary);
-                while (selectedResults.length > 10) { //inner while loop is to allow the step values arr to help adjust the amount of results we get back
-                    ++yStepInd;
-                    ++xStepInd;
-                    var rowBoundary = yArr.indexOf(ob.coords.y + stepOb.y[yStepInd]), // todo package the step increment in a try if there is index bugging
-                        colBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]),
+                selectedResults.splice(selectedResults.indexOf(ob), 1);
+                while (selectedResults.length > 10 || selectedResults.length == 0 && yStepInd+xStepInd > 10) { //inner while loop is to allow the step values arr to help adjust the amount of results we get back
+                    if (rowBoundary == -1) ++yStepInd;
+                    if (colBoundary == -1) ++xStepInd;
+                    if (selectedResults.length > 10) {
+                        if (colBoundary > rowBoundary) {++xStepInd} else {++yStepInd}
+                    }
+                    if (!stepOb.x[xStepInd] || !stepOb.y[yStepInd]) break;
+                    var rowBoundary = yArr.indexOf(+(ob.coords.y + stepOb.y[yStepInd]).toFixed(2)), // todo package the step increment in a try if there is index bugging
+                        colBoundary = xArr.indexOf(+(ob.coords.x + stepOb.x[xStepInd]).toFixed(2)),
                         selectedResults = reconstructMatrixBySection(structure, currentRowInd, rowBoundary, currentColInd, colBoundary);
+                    selectedResults.splice(selectedResults.indexOf(ob), 1)
 
                 }
                 var hairSplit = 1,
                     closestX = chooseClosestNeighbor(selectedResults, ob, 'right', hairSplit),
                     closestY = chooseClosestNeighbor(selectedResults, ob, 'up', hairSplit);
-                while (closestX == closestY) {
-                    debugger;
-                    hairSplit += .25; // if you consult the choose neighbor code the hairsplit can be seen helping to separate the right results into a 'closer' category when we are trying to choose for the right vice verse for the up
-                    closestX = chooseClosestNeighbor(selectedResults, ob, 'right', hairSplit);
-                    closestY = chooseClosestNeighbor(selectedResults, ob, 'up', hairSplit);
-                }
+                // while (closestX == closestY) {
+                //     ++hairSplit; // if you consult the choose neighbor code the hairsplit can be seen helping to separate the right results into a 'closer' category when we are trying to choose for the right vice verse for the up
+                //     //its entirely possible that this is too small of an increase, it took the hairSplit to get to ten for this to actually result in the change I wanted
+                //     closestX = chooseClosestNeighbor(selectedResults, ob, 'right', hairSplit);
+                //     closestY = chooseClosestNeighbor(selectedResults, ob, 'up', hairSplit);
+                // }
                 // next it will be good to create some sort of actual metric comparison function to call below
                 //todo maake metric comparison function
                 //todo email lia asking how to get info for results metrics that arent currently available in color or rad.
                 break;
             case (true, false): //top row
-                var rightColBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]),
+                var rightColBoundary = xArr.indexOf(+(ob.coords.x + stepOb.x[xStepInd]).toFixed(2)),
                     selectedResults = reconstructMatrixBySection(structure, currentRowInd, currentRowInd, currentColInd, rightColBoundary); // return only items from the row
-                while (selectedResults.length > 10) {
-                    ++xStepInd;
-                    var rightColBoundary = xArr.indexOf(ob.coords.x + stepOb.x[xStepInd]),
-                        selectedResults = reconstructMatrixBySection(structure, currentRowInd, currentRowInd, currentColInd, rightColBoundary);
+                selectedResults.splice(selectedResults.indexOf(ob), 1);
 
-                }
+                // while (selectedResults.length > 10 || selectedResults.length == 0) {
+                //     ++xStepInd;
+                //     var rightColBoundary = xArr.indexOf(+(ob.coords.x + stepOb.x[xStepInd]).toFixed(2)),
+                //         selectedResults = reconstructMatrixBySection(structure, currentRowInd, currentRowInd, currentColInd, rightColBoundary);
+                //     selectedResults.splice(selectedResults.indexOf(ob), 1)
+                //
+                //
+                // }
                 var hairSplit = 1,
                     closestX = chooseClosestNeighbor(selectedResults, ob, 'right', hairSplit);
                 break;
             case (false, true): //right col
-                var rowBoundary = yArr.indexOf(ob.coords.y - stepOb.y[yStepInd]),
+                var rowBoundary = yArr.indexOf(+(ob.coords.y + stepOb.y[yStepInd]).toFixed(2)),
                     selectedResults = reconstructMatrixBySection(structure, currentRowInd, rowBoundary, currentColInd, currentColInd);
-                while (selectedResults.length > 10) {
-                    ++yStepInd;
-                    var rowBoundary = yArr.indexOf(ob.coords.y - stepOb.y[yStepInd]),
-                        selectedResults = reconstructMatrixBySection(structure, currentRowInd, rowBoundary, currentColInd, currentColInd);
+                selectedResults.splice(selectedResults.indexOf(ob), 1);
 
-                }
+                // while (selectedResults.length > 10 || selectedResults.length == 0) {
+                //     ++yStepInd;
+                //     var rowBoundary = yArr.indexOf(+(ob.coords.y + stepOb.y[yStepInd]).toFixed(2)),
+                //         selectedResults = reconstructMatrixBySection(structure, currentRowInd, rowBoundary, currentColInd, currentColInd);
+                //     selectedResults.splice(selectedResults.indexOf(ob), 1)
+                //
+                //
+                // }
                 var hairSplit = 1,
                     closestY = chooseClosestNeighbor(selectedResults, ob, 'up', hairSplit);
                 break;
             // don't worry about the top right dot, it has already recieved all the comparisons that it needs
         }
-        ++obInd
     }
 }
 
