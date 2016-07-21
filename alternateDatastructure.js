@@ -16,7 +16,13 @@
 //I'm just going to try a COO coordinate list of tuples, but then why would I change it from the current object array?
 // do I want the data to be sorted at all? Maybe either by row or column parameter value?
 function createStructure(data, xlabels, ylabels) {
-    retCSR = {IA:[0],A:data,JA:[]};
+    retCSR = {IA:[0],A: removeDuplicateRes(data) ,JA:[]};
+    retCSR.A.sort(function (obA,obB) { // for CSR I think maybe I need to be sorting on the y, and it needs to sort such that the order is increasing like labels
+        if (obA.coords.y < obB.coords.y) return -1
+        if (obA.coords.y > obB.coords.y) return 1
+        if (obA.coords.x < obB.coords.x) return -1
+        if (obA.coords.x > obB.coords.x) return 1
+    })
     for (var i in ylabels) { //this will populate the IA array with as many entries as the # of rows + 1
         var rowCount = 0;
         data.map(function (ob) {if (ob.coords.y == ylabels[i]) {return ++rowCount}});
@@ -26,6 +32,23 @@ function createStructure(data, xlabels, ylabels) {
         retCSR.JA.push(xlabels.indexOf(ob.coords.x)); // I believe it is very important not to sort this or else the map of what ob goes with which column will be lost
     }
     return retCSR
+}
+
+// I think I should write  a function that will remove the duplicate instances of result occurence from the create structure step.
+function removeDuplicateRes(data) {
+    var obCounter = {},
+        discardOb,
+        discardInd;
+    for (var ob of data) {
+        discardOb = ''+ob.coords.x +''+ob.coords.y;
+        if (obCounter.hasOwnProperty(discardOb)){
+            discardInd = data.indexOf(ob)
+            data.splice(discardInd,1)
+        } else {
+            obCounter[discardOb] = undefined
+        }
+    }
+    return data
 }
 
 //this function recreates a row from the sparse matrix and leaves undefined objects where there isn't a result. The tricky part here is to remember that the ithrow starts counting at 0
